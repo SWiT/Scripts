@@ -22,18 +22,18 @@
 #
 
 SMPT=true
-RAIDDRIVE="/dev/md0"
-TO="user@example.com"
-FROM="user@example.com"
-SPAREDRIVES=1
-DRIVES=("/dev/md0" "/dev/sda2" "/dev/sda3")
-MINPERCENTFREE=4
+RAIDDRIVE="/dev/md1"
+TO="switlikm@gmail.com"
+FROM="switlikm@comcast.net"
+SPAREDRIVES=0
+DRIVES=("/dev/md1" "/dev/sda1")
+MINPERCENTFREE=5
 
 ARG="$1"
 if [ "$ARG" = "-e" ]; then
-	EMAILOK=true
+    EMAILOK=true
 else
-	EMAILOK=false
+    EMAILOK=false
 fi
 
 MDADM=$(sudo mdadm --detail $RAIDDRIVE)
@@ -75,48 +75,48 @@ echo -e "$LOWMESSAGE"
 
 if $FAILED || $SPAREMISSING || $DISKLOW; then
     echo "FULL, FAILED, OR MISSING DEVICES!!!"	
-	echo "Sending email."
+    echo "Sending email."
     SUBJECT="[SERVER_ERROR] $HOSTNAME"
     MESSAGE+="$HOSTNAME: RAID6 Array has full, failed, or missing drive(s).\n"
-	MESSAGE+="\n"
-	MESSAGE+="$MDADM\n"
     MESSAGE+="\n"
-	MESSAGE+="$DF\n"
+    MESSAGE+="$MDADM\n"
     MESSAGE+="\n"
-	MESSAGE+="$LOWMESSAGE\n"
+    MESSAGE+="$DF\n"
+    MESSAGE+="\n"
+    MESSAGE+="$LOWMESSAGE\n"
     if [ "$SMPT" = true ]; then
         HEADER="To: $TO\n"
-	    HEADER+="From: $FROM\n"
-	    HEADER+="Subject: $SUBJECT\n"
-	    HEADER+="\n"
+        HEADER+="From: $FROM\n"
+        HEADER+="Subject: $SUBJECT\n"
+        HEADER+="\n"
         MESSAGE="$HEADER\n$MESSAGE"
         echo -e "$MESSAGE" | /usr/sbin/ssmtp $TO
     else
         echo -e "$MESSAGE" | mail -s "$SUBJECT" "$TO"
     fi	
 else
-	echo "No full, failed, or missing devices."
-	if $EMAILOK; then
-		echo "Sending email."
+    echo "No full, failed, or missing devices."
+    if $EMAILOK; then
+        echo "Sending email."
         SUBJECT="[SERVER_OK] $HOSTNAME"
         MESSAGE="$HOSTNAME: RAID6 Array is fine.\n"
-		MESSAGE+="\n"
-		MESSAGE+="$MDADM\n"
         MESSAGE+="\n"
-    	MESSAGE+="$DF\n"
+        MESSAGE+="$MDADM\n"
         MESSAGE+="\n"
-    	MESSAGE+="$LOWMESSAGE\n"
+        MESSAGE+="$DF\n"
+        MESSAGE+="\n"
+        MESSAGE+="$LOWMESSAGE\n"
         if [ "$SMPT" = true ]; then
             HEADER="To: $TO\n"
-		    HEADER+="From: $FROM\n"
-		    HEADER+="Subject: $SUBJECT\n"
-		    HEADER+="\n"
+            HEADER+="From: $FROM\n"
+            HEADER+="Subject: $SUBJECT\n"
+            HEADER+="\n"
             MESSAGE="$HEADER\n$MESSAGE"
             echo -e "$MESSAGE" | /usr/sbin/ssmtp $TO
         else
             echo -e "$MESSAGE" | mail -s "$SUBJECT" "$TO"
         fi
-	fi
+    fi
 fi
 
 echo
